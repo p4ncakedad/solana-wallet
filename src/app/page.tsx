@@ -77,7 +77,7 @@ export default function Home() {
                       </p>
                       <p className="text-lg font-semibold">
                         {token.amount.toLocaleString(undefined, {
-                          minimumFractionDigits: 4,
+                          minimumFractionDigits: 2,
                           maximumFractionDigits: 8
                         })} tokens
                       </p>

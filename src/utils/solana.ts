@@ -58,32 +58,17 @@ export const getTokenBalances = async (address: string) => {
       });
     });
 
-    const significantTokens = tokens.value
+    // Only return tokens with non-zero balances
+    return tokens.value
       .map((token) => {
         const info = token.account.data.parsed.info;
-        const amount = Number(info.tokenAmount.uiAmountString);
-        console.log(`Processing token ${info.mint}:`, {
-          uiAmount: info.tokenAmount.uiAmount,
-          uiAmountString: info.tokenAmount.uiAmountString,
-          convertedAmount: amount
-        });
         return {
           mint: info.mint,
-          amount,
+          amount: Number(info.tokenAmount.uiAmountString || 0),
           decimals: info.tokenAmount.decimals,
         };
       })
-      .filter(token => {
-        const isSignificant = token.amount > 0;
-        console.log(`Token ${token.mint}:`, {
-          amount: token.amount,
-          isSignificant
-        });
-        return isSignificant;
-      });
-
-    console.log('Final tokens with non-zero balance:', significantTokens);
-    return significantTokens;
+      .filter(token => token.amount > 0.001); // Only keep tokens with meaningful balances
   } catch (error) {
     console.error('Detailed error getting token balances:', {
       error,
