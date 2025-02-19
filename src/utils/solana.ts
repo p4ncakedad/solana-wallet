@@ -44,14 +44,17 @@ export const getTokenBalances = async (address: string) => {
     });
     console.log('Token accounts found:', tokens.value.length); // Debug log
 
-    // Filter and map tokens with balance > 0.0001
-    return tokens.value
+    // Only include tokens with balance > 0.001
+    const significantTokens = tokens.value
       .map((token) => ({
         mint: token.account.data.parsed.info.mint,
-        amount: token.account.data.parsed.info.tokenAmount.uiAmount,
+        amount: Number(token.account.data.parsed.info.tokenAmount.uiAmount || 0),
         decimals: token.account.data.parsed.info.tokenAmount.decimals,
       }))
-      .filter(token => token.amount > 0.0001);
+      .filter(token => token.amount > 0.001);
+
+    console.log('Tokens with significant balance:', significantTokens.length); // Debug log
+    return significantTokens;
   } catch (error) {
     console.error('Detailed error getting token balances:', {
       error,
