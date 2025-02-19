@@ -18,30 +18,60 @@ interface TokenMetadata {
   address: string;
 }
 
-export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<string, TokenMetadata>> => {
-  console.log('Fetching metadata for tokens:', addresses);
+interface JupiterToken {
+  address: string;
+  name: string;
+  symbol: string;
+  logoURI?: string;
+}
+
+// Cache the Jupiter token list to avoid fetching it multiple times
+let jupiterTokenListCache: JupiterToken[] | null = null;
+let lastFetchTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+async function getJupiterTokenList(): Promise<JupiterToken[]> {
+  const now = Date.now();
+  if (jupiterTokenListCache && (now - lastFetchTime) < CACHE_DURATION) {
+    return jupiterTokenListCache;
+  }
 
   try {
-    // Fetch Jupiter token list
-    const response = await fetch('https://token.jup.ag/all');
+    const response = await fetch('https://token.jup.ag/strict');
     if (!response.ok) {
       throw new Error('Failed to fetch Jupiter token list');
     }
 
     const data = await response.json();
+    jupiterTokenListCache = data.tokens;
+    lastFetchTime = now;
+    return jupiterTokenListCache || [];
+  } catch (error) {
+    console.error('Error fetching Jupiter token list:', error);
+    return jupiterTokenListCache || []; // Return cached data if available, empty array if not
+  }
+}
+
+export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<string, TokenMetadata>> => {
+  console.log('Fetching metadata for tokens:', addresses);
+
+  try {
+    const tokenList = await getJupiterTokenList();
+    console.log('Got Jupiter token list with', tokenList.length, 'tokens');
+    
     const metadata: Record<string, TokenMetadata> = {};
+    const addressSet = new Set(addresses.map(addr => addr.toLowerCase()));
 
     // Create a map of token addresses to their metadata
-    addresses.forEach(address => {
-      const token = data.find((t: any) => t.address === address);
-      if (token) {
-        metadata[address.toLowerCase()] = {
+    tokenList.forEach(token => {
+      if (addressSet.has(token.address.toLowerCase())) {
+        metadata[token.address.toLowerCase()] = {
           name: token.name,
           symbol: token.symbol,
           logo: token.logoURI || '',
           address: token.address
         };
-        console.log('Found token metadata:', address, metadata[address.toLowerCase()]);
+        console.log('Found token metadata:', token.address, metadata[token.address.toLowerCase()]);
       }
     });
 
@@ -88,8 +118,6 @@ export const getTokenBalances = async (address: string) => {
         decimals: tokenAmount.decimals,
       };
     });
-
-    console.log('All tokens before filtering:', allTokens);
 
     // Filter tokens with significant balances
     const significantTokens = allTokens
