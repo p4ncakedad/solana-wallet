@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import { getSolBalance, getTokenBalances } from '@/utils/solana';
 
+interface TokenMetadata {
+  name: string;
+  symbol: string;
+  logo: string;
+  address: string;
+}
+
 interface TokenBalance {
   mint: string;
   amount: number;
   decimals: number;
+  metadata: TokenMetadata | null;
 }
 
 interface WalletBalance {
