@@ -66,17 +66,20 @@ export default function Home() {
         </div>
 
         <div className="p-8 bg-gray-800 rounded-lg">
-          <div className="text-sm text-gray-400 mb-12">Token Balances:</div>
+          <div className="text-sm text-gray-400 mb-8">Token Balances:</div>
           {tokens.length === 0 ? (
             <div className="text-gray-500">No tokens found</div>
           ) : (
-            <div className="space-y-12">
-              {tokens.map(token => (
-                <div key={token.mint} className="flex flex-col gap-4">
-                  <div className="font-mono text-sm break-all leading-relaxed text-gray-400">
+            <div>
+              {tokens.map((token, index) => (
+                <div 
+                  key={token.mint} 
+                  className={`py-8 ${index !== 0 ? 'border-t border-gray-700' : ''}`}
+                >
+                  <div className="font-mono text-sm break-all leading-relaxed text-gray-400 mb-4">
                     {token.mint}
                   </div>
-                  <div className="font-bold text-lg leading-relaxed">
+                  <div className="font-bold text-lg">
                     {token.amount.toFixed(3)}
                   </div>
                 </div>
