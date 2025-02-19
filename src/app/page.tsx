@@ -64,7 +64,7 @@ export default function Home() {
             <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
               <h2 className="text-xl font-semibold mb-4">Token Balances</h2>
               {balances.tokenBalances.length === 0 ? (
-                <p className="text-gray-400">No tokens found</p>
+                <p className="text-gray-400">No significant token balances found (minimum 0.0001)</p>
               ) : (
                 <div className="space-y-4">
                   {balances.tokenBalances.map((token) => (
@@ -76,7 +76,10 @@ export default function Home() {
                         Token: {token.mint}
                       </p>
                       <p className="text-lg font-semibold">
-                        {token.amount} tokens
+                        {token.amount.toLocaleString(undefined, {
+                          minimumFractionDigits: 4,
+                          maximumFractionDigits: 8
+                        })} tokens
                       </p>
                     </div>
                   ))}
