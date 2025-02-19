@@ -52,27 +52,33 @@ export default function Home() {
         </div>
 
         <div className="p-8 bg-gray-800 rounded-lg">
-          <div className="text-sm text-gray-400 mb-4">Wallet Address</div>
-          <div className="font-mono text-lg break-all">{WALLET_ADDRESS}</div>
+          <div className="text-sm text-gray-400 mb-8">Wallet Address:</div>
+          <div className="font-mono text-lg break-all leading-relaxed">
+            {WALLET_ADDRESS}
+          </div>
         </div>
 
         <div className="p-8 bg-gray-800 rounded-lg">
-          <div className="text-sm text-gray-400 mb-4">SOL Balance</div>
-          <div className="text-3xl font-bold">
+          <div className="text-sm text-gray-400 mb-8">SOL Balance:</div>
+          <div className="text-3xl font-bold leading-relaxed">
             {solBalance?.toFixed(4)} SOL
           </div>
         </div>
 
         <div className="p-8 bg-gray-800 rounded-lg">
-          <div className="text-sm text-gray-400 mb-8">Token Balances</div>
+          <div className="text-sm text-gray-400 mb-12">Token Balances:</div>
           {tokens.length === 0 ? (
             <div className="text-gray-500">No tokens found</div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-12">
               {tokens.map(token => (
-                <div key={token.mint} className="p-6 bg-gray-700 rounded-lg flex justify-between items-center">
-                  <div className="font-mono text-sm break-all max-w-[70%]">{token.mint}</div>
-                  <div className="font-bold text-lg">{token.amount.toFixed(3)}</div>
+                <div key={token.mint} className="flex flex-col gap-4">
+                  <div className="font-mono text-sm break-all leading-relaxed text-gray-400">
+                    {token.mint}
+                  </div>
+                  <div className="font-bold text-lg leading-relaxed">
+                    {token.amount.toFixed(3)}
+                  </div>
                 </div>
               ))}
             </div>
