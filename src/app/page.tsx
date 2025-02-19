@@ -33,37 +33,36 @@ export default function Home() {
           Solana Wallet Balance Checker
         </h1>
         
-        <form onSubmit={handleSubmit} className="mb-8">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
+          <div className="w-full flex-1">
             <input
               type="text"
               placeholder="Enter Solana wallet address"
               value={address}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
-              className="flex-1 px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-500 focus:outline-none"
+              className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-500 focus:outline-none"
             />
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Loading...' : 'Check Balance'}
-              </button>
-              {balances && (
-                <button
-                  type="button"
-                  onClick={handleRefresh}
-                  disabled={isLoading}
-                  className="px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-all flex items-center gap-1"
-                >
-                  <RefreshIcon className="w-5 h-5" />
-                  <span className="sr-only">Refresh Balance</span>
-                </button>
-              )}
-            </div>
           </div>
-        </form>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => address.trim() && fetchBalances(address.trim())}
+              disabled={isLoading}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Loading...' : 'Check Balance'}
+            </button>
+            {balances && (
+              <button
+                onClick={handleRefresh}
+                disabled={isLoading}
+                className="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh Balance"
+              >
+                <RefreshIcon className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
 
         {error && (
           <div className="p-4 bg-red-500/20 border border-red-500 rounded-lg mb-6">
