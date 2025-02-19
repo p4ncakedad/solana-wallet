@@ -74,15 +74,13 @@ export default function Home() {
                   {tokenBalances.map((token) => (
                     <div
                       key={token.mint}
-                      className="p-4 bg-gray-700/50 rounded-lg border border-gray-600"
+                      className="p-4 bg-gray-700/50 rounded-lg border border-gray-600 flex justify-between items-center"
                     >
-                      <p className="text-sm font-mono text-gray-400 mb-2">
+                      <p className="font-mono text-sm text-gray-400">
                         {token.mint}
                       </p>
-                      <p className="text-xl font-bold text-blue-400">
-                        {token.amount.toLocaleString(undefined, {
-                          maximumFractionDigits: 8
-                        })}
+                      <p className="text-lg font-bold text-blue-400 ml-4">
+                        {token.amount.toFixed(3)}
                       </p>
                     </div>
                   ))}
