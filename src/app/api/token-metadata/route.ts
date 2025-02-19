@@ -1,20 +1,26 @@
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const addresses = searchParams.get('addresses');
-
-  if (!addresses) {
-    return NextResponse.json({ error: 'No addresses provided' }, { status: 400 });
-  }
-
-  const CMC_API_KEY = process.env.NEXT_PUBLIC_CMC_API_KEY;
-  
-  if (!CMC_API_KEY) {
-    return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
-  }
-
+export async function GET(request: Request): Promise<NextResponse> {
   try {
+    const { searchParams } = new URL(request.url);
+    const addresses = searchParams.get('addresses');
+
+    if (!addresses) {
+      return NextResponse.json(
+        { error: 'No addresses provided' },
+        { status: 400 }
+      );
+    }
+
+    const CMC_API_KEY = process.env.NEXT_PUBLIC_CMC_API_KEY;
+    
+    if (!CMC_API_KEY) {
+      return NextResponse.json(
+        { error: 'API key not configured' },
+        { status: 500 }
+      );
+    }
+
     const response = await fetch(
       `https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?aux=logo,symbol,name&skip_invalid=true&platform=solana&address=${addresses}`,
       {
