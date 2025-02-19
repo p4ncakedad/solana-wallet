@@ -61,15 +61,15 @@ export default function Home() {
         {balances && (
           <div className="space-y-6">
             <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                 <h2 className="text-xl font-semibold">SOL Balance</h2>
                 <button
                   onClick={handleRefresh}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <RefreshIcon className="w-4 h-4" />
-                  Refresh
+                  <RefreshIcon className="w-5 h-5" />
+                  {isLoading ? 'Refreshing...' : 'Refresh Balance'}
                 </button>
               </div>
               <p className="text-3xl font-bold text-blue-400">
@@ -78,17 +78,7 @@ export default function Home() {
             </div>
 
             <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Token Balances</h2>
-                <button
-                  onClick={handleRefresh}
-                  disabled={isLoading}
-                  className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <RefreshIcon className="w-4 h-4" />
-                  Refresh
-                </button>
-              </div>
+              <h2 className="text-xl font-semibold mb-4">Token Balances (&gt; 0.001)</h2>
               {balances.tokenBalances.length === 0 ? (
                 <p className="text-gray-400">No tokens found with balance greater than 0.001</p>
               ) : (

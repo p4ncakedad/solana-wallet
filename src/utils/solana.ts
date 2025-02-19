@@ -28,14 +28,20 @@ export const getTokenBalances = async (address: string) => {
       programId: TOKEN_PROGRAM_ID,
     });
 
-    return tokens.value
-      .map(token => ({
-        mint: token.account.data.parsed.info.mint,
-        amount: Number(token.account.data.parsed.info.tokenAmount.uiAmountString || 0),
-        decimals: token.account.data.parsed.info.tokenAmount.decimals,
-      }))
-      .filter(token => token.amount > 0.001)
-      .sort((a, b) => b.amount - a.amount);
+    // Filter tokens with significant balances
+    const significantTokens = tokens.value
+      .map(token => {
+        const tokenAmount = token.account.data.parsed.info.tokenAmount;
+        return {
+          mint: token.account.data.parsed.info.mint,
+          amount: Number(tokenAmount.uiAmountString),
+          decimals: tokenAmount.decimals,
+        };
+      })
+      .filter(token => token.amount > 0.001) // Strict filtering for balances > 0.001
+      .sort((a, b) => b.amount - a.amount); // Sort by highest balance first
+
+    return significantTokens;
   } catch (error) {
     throw error;
   }
