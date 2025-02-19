@@ -22,55 +22,69 @@ interface TokenMetadata {
   address: string;
 }
 
+// Helper function to chunk array into smaller pieces
+const chunkArray = (array: string[], size: number): string[][] => {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+};
+
 export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<string, TokenMetadata>> => {
   console.log('Fetching metadata for tokens:', addresses);
   console.log('Using CMC API Key:', CMC_API_KEY ? 'Present' : 'Missing');
 
-  if (!CMC_API_KEY) {
-    console.warn('CoinMarketCap API key not found');
+  if (!CMC_API_KEY || addresses.length === 0) {
+    console.warn('CoinMarketCap API key not found or no addresses provided');
     return {};
   }
 
   try {
-    const apiUrl = `${CMC_API_URL}/cryptocurrency/info?address=${addresses.join(',')}`;
-    console.log('Calling CoinMarketCap API:', apiUrl);
+    // Split addresses into chunks of 10 to avoid URL length limits
+    const addressChunks = chunkArray(addresses, 10);
+    const allMetadata: Record<string, TokenMetadata> = {};
 
-    const response = await fetch(apiUrl, {
-      headers: {
-        'X-CMC_PRO_API_KEY': CMC_API_KEY,
-        'Accept': 'application/json'
+    for (const chunk of addressChunks) {
+      const apiUrl = `https://cors-proxy.fringe.zone/https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?address=${chunk.join(',')}`;
+      console.log('Calling CoinMarketCap API:', apiUrl);
+
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'X-CMC_PRO_API_KEY': CMC_API_KEY,
+          'Accept': 'application/json'
+        }
+      });
+
+      console.log('API Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error:', errorText);
+        continue; // Skip this chunk if there's an error, but continue with others
       }
-    });
 
-    console.log('API Response status:', response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error:', errorText);
-      throw new Error(`Failed to fetch token metadata: ${response.status} ${errorText}`);
+      const data = await response.json();
+      console.log('API Response data:', JSON.stringify(data, null, 2));
+
+      // Process the response data
+      Object.values(data.data || {}).forEach((token: any) => {
+        if (token.platform?.token_address) {
+          const address = token.platform.token_address.toLowerCase();
+          allMetadata[address] = {
+            name: token.name,
+            symbol: token.symbol,
+            logo: token.logo,
+            address: token.platform.token_address
+          };
+          console.log('Processed token metadata:', address, allMetadata[address]);
+        }
+      });
     }
 
-    const data = await response.json();
-    console.log('API Response data:', JSON.stringify(data, null, 2));
-
-    const metadata: Record<string, TokenMetadata> = {};
-
-    // Process the response data
-    Object.values(data.data || {}).forEach((token: any) => {
-      if (token.platform?.token_address) {
-        const address = token.platform.token_address.toLowerCase();
-        metadata[address] = {
-          name: token.name,
-          symbol: token.symbol,
-          logo: token.logo,
-          address: token.platform.token_address
-        };
-        console.log('Processed token metadata:', address, metadata[address]);
-      }
-    });
-
-    console.log('Final metadata object:', metadata);
-    return metadata;
+    console.log('Final metadata object:', allMetadata);
+    return allMetadata;
   } catch (error) {
     console.error('Error fetching token metadata:', error);
     return {};
