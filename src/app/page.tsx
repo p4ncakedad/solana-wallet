@@ -66,9 +66,10 @@ export default function Home() {
                 <button
                   onClick={handleRefresh}
                   disabled={isLoading}
-                  className="p-2 text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <RefreshIcon className="w-5 h-5" />
+                  <RefreshIcon className="w-4 h-4" />
+                  Refresh
                 </button>
               </div>
               <p className="text-3xl font-bold text-blue-400">
@@ -77,7 +78,17 @@ export default function Home() {
             </div>
 
             <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
-              <h2 className="text-xl font-semibold mb-4">Token Balances</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Token Balances</h2>
+                <button
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <RefreshIcon className="w-4 h-4" />
+                  Refresh
+                </button>
+              </div>
               {balances.tokenBalances.length === 0 ? (
                 <p className="text-gray-400">No tokens found with balance greater than 0.001</p>
               ) : (
