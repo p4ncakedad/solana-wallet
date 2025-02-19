@@ -2,8 +2,9 @@ import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 // Initialize Solana connection using environment variable
-const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
-console.log('Using RPC URL:', rpcUrl); // Debug log
+const baseUrl = 'https://mainnet.helius-rpc.com';
+const apiKey = '2c8fd547-a255-4d11-b0a1-833ddc543ad7';
+const rpcUrl = `${baseUrl}/?api-key=${apiKey}`;
 
 // Create the connection with proper configuration
 export const connection = new Connection(rpcUrl, {
@@ -42,30 +43,42 @@ export const getTokenBalances = async (address: string) => {
     const tokens = await connection.getParsedTokenAccountsByOwner(publicKey, {
       programId: TOKEN_PROGRAM_ID,
     });
+    console.log('Raw token response:', JSON.stringify(tokens, null, 2));
     console.log('Token accounts found:', tokens.value.length); // Debug log
 
     // Log raw token data for debugging
     tokens.value.forEach((token, index) => {
-      console.log(`Token ${index + 1}:`, {
-        mint: token.account.data.parsed.info.mint,
-        rawAmount: token.account.data.parsed.info.tokenAmount.uiAmount,
-        decimals: token.account.data.parsed.info.tokenAmount.decimals,
+      const info = token.account.data.parsed.info;
+      console.log(`Token ${index + 1} Details:`, {
+        mint: info.mint,
+        rawAmount: info.tokenAmount.uiAmount,
+        rawAmountString: info.tokenAmount.uiAmountString,
+        decimals: info.tokenAmount.decimals,
+        fullInfo: info
       });
     });
 
     const significantTokens = tokens.value
       .map((token) => {
-        const amount = Number(token.account.data.parsed.info.tokenAmount.uiAmount || 0);
-        console.log(`Processed amount for ${token.account.data.parsed.info.mint}:`, amount);
+        const info = token.account.data.parsed.info;
+        const amount = Number(info.tokenAmount.uiAmountString);
+        console.log(`Processing token ${info.mint}:`, {
+          uiAmount: info.tokenAmount.uiAmount,
+          uiAmountString: info.tokenAmount.uiAmountString,
+          convertedAmount: amount
+        });
         return {
-          mint: token.account.data.parsed.info.mint,
+          mint: info.mint,
           amount,
-          decimals: token.account.data.parsed.info.tokenAmount.decimals,
+          decimals: info.tokenAmount.decimals,
         };
       })
       .filter(token => {
         const isSignificant = token.amount > 0;
-        console.log(`Token ${token.mint} amount ${token.amount} is significant: ${isSignificant}`);
+        console.log(`Token ${token.mint}:`, {
+          amount: token.amount,
+          isSignificant
+        });
         return isSignificant;
       });
 
