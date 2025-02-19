@@ -42,13 +42,26 @@ export default function Home() {
               onChange={(e: ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
               className="flex-1 px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-500 focus:outline-none"
             />
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Loading...' : 'Check Balance'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Loading...' : 'Check Balance'}
+              </button>
+              {balances && (
+                <button
+                  type="button"
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  className="px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-all flex items-center gap-1"
+                >
+                  <RefreshIcon className="w-5 h-5" />
+                  <span className="sr-only">Refresh Balance</span>
+                </button>
+              )}
+            </div>
           </div>
         </form>
 
@@ -62,17 +75,7 @@ export default function Home() {
           <div className="space-y-6">
             <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
               <div className="flex flex-col gap-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold">SOL Balance</h2>
-                  <button
-                    onClick={handleRefresh}
-                    disabled={isLoading}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2 transition-all transform hover:scale-105"
-                  >
-                    <RefreshIcon className="w-6 h-6" />
-                    {isLoading ? 'UPDATING...' : 'UPDATE BALANCE'}
-                  </button>
-                </div>
+                <h2 className="text-xl font-semibold">SOL Balance</h2>
                 <p className="text-3xl font-bold text-blue-400">
                   {balances.solBalance.toFixed(4)} SOL
                 </p>
