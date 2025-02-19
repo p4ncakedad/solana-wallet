@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         headers: {
           'X-CMC_PRO_API_KEY': CMC_API_KEY,
           'Accept': 'application/json'
-        },
+        }
       }
     );
 
@@ -33,11 +33,14 @@ export async function GET(request: Request) {
     
     return NextResponse.json(data, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300', // Cache for 5 minutes
-      },
+        'Cache-Control': 'public, s-maxage=300'
+      }
     });
   } catch (error) {
     console.error('Error fetching token metadata:', error);
     return NextResponse.json(
       { error: 'Failed to fetch token metadata' },
- 
+      { status: 500 }
+    );
+  }
+} 
