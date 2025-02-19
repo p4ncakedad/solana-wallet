@@ -1,18 +1,5 @@
 import { useState } from 'react';
-import { getSolBalance, getTokenBalances } from '@/utils/solana';
-
-interface TokenMetadata {
-  name: string;
-  symbol: string;
-  address: string;
-}
-
-interface TokenBalance {
-  mint: string;
-  amount: number;
-  decimals: number;
-  metadata: TokenMetadata | null;
-}
+import { getSolBalance, getTokenBalances, type TokenBalance } from '@/utils/solana';
 
 interface WalletBalance {
   solBalance: number;
@@ -26,7 +13,7 @@ export const useWalletBalance = () => {
   const [balances, setBalances] = useState<WalletBalance | null>(null);
 
   const fetchBalances = async (walletAddress: string) => {
-    console.log('Starting balance fetch for:', walletAddress); // Debug log
+    console.log('Starting balance fetch for:', walletAddress);
     setIsLoading(true);
     setError(null);
     setBalances(null);
@@ -38,18 +25,17 @@ export const useWalletBalance = () => {
     }
 
     try {
-      // Validate address format
       if (!walletAddress.match(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/)) {
         throw new Error('Invalid Solana address format');
       }
 
-      console.log('Fetching SOL and token balances...'); // Debug log
+      console.log('Fetching SOL and token balances...');
       const [solBalance, tokenBalances] = await Promise.all([
         getSolBalance(walletAddress),
         getTokenBalances(walletAddress),
       ]);
       
-      console.log('Balances received:', { solBalance, tokenBalances }); // Debug log
+      console.log('Balances received:', { solBalance, tokenBalances });
       
       setBalances({
         solBalance,
