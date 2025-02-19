@@ -23,36 +23,53 @@ interface TokenMetadata {
 }
 
 export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<string, TokenMetadata>> => {
+  console.log('Fetching metadata for tokens:', addresses);
+  console.log('Using CMC API Key:', CMC_API_KEY ? 'Present' : 'Missing');
+
   if (!CMC_API_KEY) {
     console.warn('CoinMarketCap API key not found');
     return {};
   }
 
   try {
-    const response = await fetch(`${CMC_API_URL}/cryptocurrency/info?address=${addresses.join(',')}`, {
+    const apiUrl = `${CMC_API_URL}/cryptocurrency/info?address=${addresses.join(',')}`;
+    console.log('Calling CoinMarketCap API:', apiUrl);
+
+    const response = await fetch(apiUrl, {
       headers: {
         'X-CMC_PRO_API_KEY': CMC_API_KEY,
         'Accept': 'application/json'
       }
     });
 
+    console.log('API Response status:', response.status);
+    
     if (!response.ok) {
-      throw new Error('Failed to fetch token metadata');
+      const errorText = await response.text();
+      console.error('API Error:', errorText);
+      throw new Error(`Failed to fetch token metadata: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('API Response data:', JSON.stringify(data, null, 2));
+
     const metadata: Record<string, TokenMetadata> = {};
 
     // Process the response data
-    Object.values(data.data).forEach((token: any) => {
-      metadata[token.platform.token_address.toLowerCase()] = {
-        name: token.name,
-        symbol: token.symbol,
-        logo: token.logo,
-        address: token.platform.token_address
-      };
+    Object.values(data.data || {}).forEach((token: any) => {
+      if (token.platform?.token_address) {
+        const address = token.platform.token_address.toLowerCase();
+        metadata[address] = {
+          name: token.name,
+          symbol: token.symbol,
+          logo: token.logo,
+          address: token.platform.token_address
+        };
+        console.log('Processed token metadata:', address, metadata[address]);
+      }
     });
 
+    console.log('Final metadata object:', metadata);
     return metadata;
   } catch (error) {
     console.error('Error fetching token metadata:', error);
@@ -72,10 +89,13 @@ export const getSolBalance = async (address: string): Promise<number> => {
 
 export const getTokenBalances = async (address: string) => {
   try {
+    console.log('Getting token balances for address:', address);
     const publicKey = new PublicKey(address);
     const tokens = await connection.getParsedTokenAccountsByOwner(publicKey, {
       programId: TOKEN_PROGRAM_ID,
     });
+
+    console.log('Raw token accounts:', tokens.value);
 
     // Filter tokens with significant balances
     const significantTokens = tokens.value
@@ -87,18 +107,24 @@ export const getTokenBalances = async (address: string) => {
           decimals: tokenAmount.decimals,
         };
       })
-      .filter(token => token.amount > 0.001) // Strict filtering for balances > 0.001
-      .sort((a, b) => b.amount - a.amount); // Sort by highest balance first
+      .filter(token => token.amount > 0.001);
+
+    console.log('Significant tokens:', significantTokens);
 
     // Fetch metadata for all tokens
     const tokenMetadata = await fetchTokenMetadata(significantTokens.map(t => t.mint));
+    console.log('Retrieved metadata:', tokenMetadata);
 
     // Combine balance data with metadata
-    return significantTokens.map(token => ({
+    const tokensWithMetadata = significantTokens.map(token => ({
       ...token,
       metadata: tokenMetadata[token.mint.toLowerCase()] || null
     }));
+
+    console.log('Final tokens with metadata:', tokensWithMetadata);
+    return tokensWithMetadata;
   } catch (error) {
+    console.error('Error in getTokenBalances:', error);
     throw error;
   }
 }; 
