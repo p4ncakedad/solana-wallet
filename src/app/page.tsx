@@ -7,27 +7,20 @@ const WALLET_ADDRESS = '75pGXf9UFNFct1vY6aGhbWVgLu55Y2WoJwjMvBvoD8ex';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [solBalance, setSolBalance] = useState<number | null>(null);
+  const [solBalance, setSolBalance] = useState<number>(0);
   const [tokenBalances, setTokenBalances] = useState<TokenBalance[]>([]);
 
   const fetchBalances = async () => {
     setIsLoading(true);
-    setError(null);
     
-    try {
-      const [sol, tokens] = await Promise.all([
-        getSolBalance(WALLET_ADDRESS),
-        getTokenBalances(WALLET_ADDRESS)
-      ]);
-      
-      setSolBalance(sol);
-      setTokenBalances(tokens);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch balances');
-    } finally {
-      setIsLoading(false);
-    }
+    const [sol, tokens] = await Promise.all([
+      getSolBalance(WALLET_ADDRESS),
+      getTokenBalances(WALLET_ADDRESS)
+    ]);
+    
+    setSolBalance(sol);
+    setTokenBalances(tokens);
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -52,43 +45,37 @@ export default function Home() {
           {WALLET_ADDRESS}
         </div>
 
-        {error ? (
-          <div className="p-4 bg-red-500/20 border border-red-500 rounded-lg">
-            {error}
+        <div className="space-y-6">
+          <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
+            <h2 className="text-xl font-semibold mb-2">SOL Balance</h2>
+            <p className="text-3xl font-bold text-blue-400">
+              {solBalance.toFixed(4)} SOL
+            </p>
           </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
-              <h2 className="text-xl font-semibold mb-2">SOL Balance</h2>
-              <p className="text-3xl font-bold text-blue-400">
-                {solBalance?.toFixed(4) ?? '...'} SOL
-              </p>
-            </div>
 
-            <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
-              <h2 className="text-xl font-semibold mb-4">Token Balances</h2>
-              {tokenBalances.length === 0 ? (
-                <p className="text-gray-400">No tokens found</p>
-              ) : (
-                <div className="space-y-4">
-                  {tokenBalances.map((token) => (
-                    <div
-                      key={token.mint}
-                      className="p-4 bg-gray-700/50 rounded-lg border border-gray-600 flex justify-between items-center"
-                    >
-                      <p className="font-mono text-sm text-gray-400">
-                        {token.mint}
-                      </p>
-                      <p className="text-lg font-bold text-blue-400 ml-4">
-                        {token.amount.toFixed(3)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
+            <h2 className="text-xl font-semibold mb-4">Token Balances</h2>
+            {tokenBalances.length === 0 ? (
+              <p className="text-gray-400">No tokens found</p>
+            ) : (
+              <div className="space-y-4">
+                {tokenBalances.map((token) => (
+                  <div
+                    key={token.mint}
+                    className="p-4 bg-gray-700/50 rounded-lg border border-gray-600 flex justify-between items-center"
+                  >
+                    <p className="font-mono text-sm text-gray-400">
+                      {token.mint}
+                    </p>
+                    <p className="text-lg font-bold text-blue-400 ml-4">
+                      {token.amount.toFixed(3)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </main>
   );

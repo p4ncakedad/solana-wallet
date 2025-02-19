@@ -1,12 +1,11 @@
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
-const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=2c8fd547-a255-4d11-b0a1-833ddc543ad7', 'confirmed');
 
 export interface TokenBalance {
   mint: string;
   amount: number;
-  decimals: number;
 }
 
 export const getSolBalance = async (address: string): Promise<number> => {
@@ -16,7 +15,7 @@ export const getSolBalance = async (address: string): Promise<number> => {
     return balance / LAMPORTS_PER_SOL;
   } catch (error) {
     console.error('Error fetching SOL balance:', error);
-    throw error;
+    return 0;
   }
 };
 
@@ -27,21 +26,18 @@ export const getTokenBalances = async (address: string): Promise<TokenBalance[]>
       programId: TOKEN_PROGRAM_ID,
     });
 
-    const balances = tokens.value
+    return tokens.value
       .map(token => {
         const { amount, decimals } = token.account.data.parsed.info.tokenAmount;
         return {
           mint: token.account.data.parsed.info.mint,
-          amount: Number(amount) / Math.pow(10, decimals),
-          decimals
+          amount: Number(amount) / Math.pow(10, decimals)
         };
       })
       .filter(token => token.amount > 0)
       .sort((a, b) => b.amount - a.amount);
-
-    return balances;
   } catch (error) {
     console.error('Error fetching token balances:', error);
-    throw error;
+    return [];
   }
 }; 
