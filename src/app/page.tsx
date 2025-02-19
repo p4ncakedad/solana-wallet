@@ -36,10 +36,10 @@ export default function Home() {
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             title="Refresh Balance"
           >
-            <RefreshIcon className="w-4 h-4" />
+            <RefreshIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -97,13 +97,13 @@ const RefreshIcon = ({ className = "w-6 h-6" }) => (
     className={className} 
     fill="none" 
     stroke="currentColor" 
+    strokeWidth={2.5}
     viewBox="0 0 24 24" 
     xmlns="http://www.w3.org/2000/svg"
   >
     <path 
       strokeLinecap="round" 
       strokeLinejoin="round" 
-      strokeWidth={2} 
       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
     />
   </svg>
