@@ -1,95 +1,89 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useWalletBalance } from '@/hooks/useWalletBalance';
+import { useState, useEffect } from 'react';
+import { getSolBalance, getTokenBalances, type TokenBalance } from '@/utils/solana';
+
+const WALLET_ADDRESS = '75pGXf9UFNFct1vY6aGhbWVgLu55Y2WoJwjMvBvoD8ex';
 
 export default function Home() {
-  const WALLET_ADDRESS = '75pGXf9UFNFct1vY6aGhbWVgLu55Y2WoJwjMvBvoD8ex';
-  
-  const {
-    isLoading,
-    error,
-    balances,
-    fetchBalances,
-  } = useWalletBalance();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [solBalance, setSolBalance] = useState<number | null>(null);
+  const [tokenBalances, setTokenBalances] = useState<TokenBalance[]>([]);
+
+  const fetchBalances = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const [sol, tokens] = await Promise.all([
+        getSolBalance(WALLET_ADDRESS),
+        getTokenBalances(WALLET_ADDRESS)
+      ]);
+      
+      setSolBalance(sol);
+      setTokenBalances(tokens);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch balances');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchBalances(WALLET_ADDRESS);
+    fetchBalances();
   }, []);
-
-  const handleRefresh = () => {
-    fetchBalances(WALLET_ADDRESS);
-  };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-4">
       <div className="max-w-4xl mx-auto pt-12">
-        <h1 className="text-4xl font-bold text-center mb-8">
-          Solana Wallet Balance Checker
-        </h1>
-        
-        <div className="flex items-center justify-between gap-2 p-4 bg-gray-800 rounded-lg border border-gray-700 mb-8">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400">Wallet:</span>
-            <span className="font-mono">{WALLET_ADDRESS}</span>
-          </div>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold">Wallet Balance</h1>
           <button
-            onClick={handleRefresh}
+            onClick={fetchBalances}
             disabled={isLoading}
-            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            title="Refresh Balance"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
           >
-            <RefreshIcon className="w-5 h-5" />
+            {isLoading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
 
-        {error && (
-          <div className="p-4 bg-red-500/20 border border-red-500 rounded-lg mb-6">
+        <div className="mb-4 font-mono text-sm text-gray-400">
+          {WALLET_ADDRESS}
+        </div>
+
+        {error ? (
+          <div className="p-4 bg-red-500/20 border border-red-500 rounded-lg">
             {error}
           </div>
-        )}
-
-        {balances && (
+        ) : (
           <div className="space-y-6">
             <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
-              <div className="flex flex-col gap-4">
-                <h2 className="text-xl font-semibold">SOL Balance</h2>
-                <p className="text-3xl font-bold text-blue-400">
-                  {balances.solBalance.toFixed(4)} SOL
-                </p>
-              </div>
+              <h2 className="text-xl font-semibold mb-2">SOL Balance</h2>
+              <p className="text-3xl font-bold text-blue-400">
+                {solBalance?.toFixed(4) ?? '...'} SOL
+              </p>
             </div>
 
             <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
-              <h2 className="text-xl font-semibold mb-4">Active Token Balances</h2>
-              {balances.tokenBalances.length === 0 ? (
-                <p className="text-gray-400">No active tokens found (minimum balance: 0.001)</p>
+              <h2 className="text-xl font-semibold mb-4">Token Balances</h2>
+              {tokenBalances.length === 0 ? (
+                <p className="text-gray-400">No tokens found</p>
               ) : (
                 <div className="space-y-4">
-                  {balances.tokenBalances.map((token) => (
+                  {tokenBalances.map((token) => (
                     <div
                       key={token.mint}
                       className="p-4 bg-gray-700/50 rounded-lg border border-gray-600"
                     >
-                      <div className="flex flex-col gap-2">
-                        <div>
-                          <h3 className="text-lg font-semibold">
-                            {token.metadata?.name || 'Unknown Token'}
-                            <span className="ml-2 text-gray-400">
-                              ({token.metadata?.symbol || 'Unknown'})
-                            </span>
-                          </h3>
-                          <p className="text-sm text-gray-400 font-mono">
-                            {token.mint}
-                          </p>
-                        </div>
-                        <p className="text-xl font-bold text-blue-400">
-                          {token.amount.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 8
-                          })}
-                        </p>
-                      </div>
+                      <p className="text-sm font-mono text-gray-400 mb-2">
+                        {token.mint}
+                      </p>
+                      <p className="text-xl font-bold text-blue-400">
+                        {token.amount.toLocaleString(undefined, {
+                          maximumFractionDigits: 8
+                        })}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -100,21 +94,4 @@ export default function Home() {
       </div>
     </main>
   );
-}
-
-const RefreshIcon = ({ className = "w-6 h-6" }) => (
-  <svg 
-    className={className} 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth={2.5}
-    viewBox="0 0 24 24" 
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-    />
-  </svg>
-); 
+} 
