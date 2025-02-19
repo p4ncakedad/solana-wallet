@@ -40,7 +40,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-3xl mx-auto space-y-12">
+      <div className="max-w-3xl mx-auto space-y-16">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Wallet Balances</h1>
           <button 
@@ -51,26 +51,26 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="p-6 bg-gray-800 rounded-lg">
-          <div className="text-sm text-gray-400 mb-3">Wallet Address</div>
+        <div className="p-8 bg-gray-800 rounded-lg">
+          <div className="text-sm text-gray-400 mb-4">Wallet Address</div>
           <div className="font-mono text-lg break-all">{WALLET_ADDRESS}</div>
         </div>
 
-        <div className="p-6 bg-gray-800 rounded-lg">
-          <div className="text-sm text-gray-400 mb-3">SOL Balance</div>
+        <div className="p-8 bg-gray-800 rounded-lg">
+          <div className="text-sm text-gray-400 mb-4">SOL Balance</div>
           <div className="text-3xl font-bold">
             {solBalance?.toFixed(4)} SOL
           </div>
         </div>
 
-        <div className="p-6 bg-gray-800 rounded-lg">
-          <div className="text-sm text-gray-400 mb-6">Token Balances</div>
+        <div className="p-8 bg-gray-800 rounded-lg">
+          <div className="text-sm text-gray-400 mb-8">Token Balances</div>
           {tokens.length === 0 ? (
             <div className="text-gray-500">No tokens found</div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {tokens.map(token => (
-                <div key={token.mint} className="p-4 bg-gray-700 rounded-lg flex justify-between items-center">
+                <div key={token.mint} className="p-6 bg-gray-700 rounded-lg flex justify-between items-center">
                   <div className="font-mono text-sm break-all max-w-[70%]">{token.mint}</div>
                   <div className="font-bold text-lg">{token.amount.toFixed(3)}</div>
                 </div>
