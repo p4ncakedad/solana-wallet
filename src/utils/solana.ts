@@ -58,17 +58,24 @@ export const getTokenBalances = async (address: string) => {
       });
     });
 
-    // Only return tokens with non-zero balances
+    // Only return tokens with actual balances
     return tokens.value
       .map((token) => {
         const info = token.account.data.parsed.info;
+        const amount = parseFloat(info.tokenAmount.uiAmountString || '0');
         return {
           mint: info.mint,
-          amount: Number(info.tokenAmount.uiAmountString || 0),
+          amount,
           decimals: info.tokenAmount.decimals,
         };
       })
-      .filter(token => token.amount > 0.001); // Only keep tokens with meaningful balances
+      .filter(token => {
+        // Ensure the amount is a valid number and greater than 0.001
+        return !isNaN(token.amount) && 
+               token.amount > 0.001 && 
+               token.amount !== 0;
+      })
+      .sort((a, b) => b.amount - a.amount); // Sort by balance, highest first
   } catch (error) {
     console.error('Detailed error getting token balances:', {
       error,
