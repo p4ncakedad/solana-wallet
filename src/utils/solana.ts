@@ -2,12 +2,13 @@ import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 // Initialize Solana connection using environment variable
-const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
-console.log('Using RPC URL:', rpcUrl); // Debug log
+const rpcUrl = (process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com').split('?')[0];
+const apiKey = (process.env.NEXT_PUBLIC_SOLANA_RPC_URL || '').split('api-key=')[1];
 
+// Create the connection with proper configuration
 export const connection = new Connection(rpcUrl, {
   commitment: 'confirmed',
-  wsEndpoint: rpcUrl.replace('https://', 'wss://'),
+  httpHeaders: apiKey ? { 'x-api-key': apiKey } : undefined
 });
 
 export const getSolBalance = async (address: string): Promise<number> => {
