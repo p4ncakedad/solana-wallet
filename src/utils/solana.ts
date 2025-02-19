@@ -60,22 +60,48 @@ export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<st
     console.log('Got Jupiter token list with', tokenList.length, 'tokens');
     
     const metadata: Record<string, TokenMetadata> = {};
-    const addressSet = new Set(addresses.map(addr => addr.toLowerCase()));
+    
+    // Create lookup maps for both cases
+    const addressSet = new Set([
+      ...addresses.map(addr => addr.toLowerCase()),
+      ...addresses.map(addr => addr.toUpperCase()),
+      ...addresses
+    ]);
+
+    // Debug: Log the first few tokens from Jupiter
+    console.log('Sample Jupiter tokens:', tokenList.slice(0, 5));
 
     // Create a map of token addresses to their metadata
     tokenList.forEach(token => {
-      if (addressSet.has(token.address.toLowerCase())) {
-        metadata[token.address.toLowerCase()] = {
+      // Try different case variations
+      const tokenAddress = token.address;
+      const lowerAddress = tokenAddress.toLowerCase();
+      const upperAddress = tokenAddress.toUpperCase();
+
+      console.log('Checking token:', {
+        tokenAddress,
+        lowerAddress,
+        upperAddress,
+        isInSet: addressSet.has(tokenAddress),
+        isInSetLower: addressSet.has(lowerAddress),
+        isInSetUpper: addressSet.has(upperAddress)
+      });
+
+      if (addressSet.has(tokenAddress) || addressSet.has(lowerAddress) || addressSet.has(upperAddress)) {
+        metadata[lowerAddress] = {
           name: token.name,
           symbol: token.symbol,
           logo: token.logoURI || '',
           address: token.address
         };
-        console.log('Found token metadata:', token.address, metadata[token.address.toLowerCase()]);
+        console.log('Found token metadata:', token.address, metadata[lowerAddress]);
       }
     });
 
-    console.log('Final metadata object:', metadata);
+    // Debug: Log addresses we're looking for vs what we found
+    console.log('Addresses we looked for:', addresses);
+    console.log('Addresses we found metadata for:', Object.keys(metadata));
+    
     return metadata;
   } catch (error) {
     console.error('Error fetching token metadata:', error);
@@ -107,13 +133,14 @@ export const getTokenBalances = async (address: string) => {
     const allTokens = tokens.value.map(token => {
       const tokenAmount = token.account.data.parsed.info.tokenAmount;
       const amount = Number(tokenAmount.uiAmountString);
+      const mint = token.account.data.parsed.info.mint;
       console.log('Token found:', {
-        mint: token.account.data.parsed.info.mint,
+        mint,
         amount,
         decimals: tokenAmount.decimals
       });
       return {
-        mint: token.account.data.parsed.info.mint,
+        mint,
         amount,
         decimals: tokenAmount.decimals,
       };
@@ -135,6 +162,9 @@ export const getTokenBalances = async (address: string) => {
       return [];
     }
 
+    // Log the mints we're looking for
+    console.log('Looking for metadata for these mints:', significantTokens.map(t => t.mint));
+
     // Fetch metadata for all tokens
     const tokenMetadata = await fetchTokenMetadata(significantTokens.map(t => t.mint));
     console.log('Retrieved metadata:', tokenMetadata);
@@ -142,7 +172,11 @@ export const getTokenBalances = async (address: string) => {
     // Combine balance data with metadata
     const tokensWithMetadata = significantTokens.map(token => {
       const metadata = tokenMetadata[token.mint.toLowerCase()] || null;
-      console.log(`Metadata for token ${token.mint}:`, metadata);
+      if (!metadata) {
+        console.log(`No metadata found for token ${token.mint}`);
+      } else {
+        console.log(`Found metadata for token ${token.mint}:`, metadata);
+      }
       return {
         ...token,
         metadata
