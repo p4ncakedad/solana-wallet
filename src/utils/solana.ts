@@ -44,16 +44,32 @@ export const getTokenBalances = async (address: string) => {
     });
     console.log('Token accounts found:', tokens.value.length); // Debug log
 
-    // Only include tokens with balance > 0.001
-    const significantTokens = tokens.value
-      .map((token) => ({
+    // Log raw token data for debugging
+    tokens.value.forEach((token, index) => {
+      console.log(`Token ${index + 1}:`, {
         mint: token.account.data.parsed.info.mint,
-        amount: Number(token.account.data.parsed.info.tokenAmount.uiAmount || 0),
+        rawAmount: token.account.data.parsed.info.tokenAmount.uiAmount,
         decimals: token.account.data.parsed.info.tokenAmount.decimals,
-      }))
-      .filter(token => token.amount > 0.001);
+      });
+    });
 
-    console.log('Tokens with significant balance:', significantTokens.length); // Debug log
+    const significantTokens = tokens.value
+      .map((token) => {
+        const amount = Number(token.account.data.parsed.info.tokenAmount.uiAmount || 0);
+        console.log(`Processed amount for ${token.account.data.parsed.info.mint}:`, amount);
+        return {
+          mint: token.account.data.parsed.info.mint,
+          amount,
+          decimals: token.account.data.parsed.info.tokenAmount.decimals,
+        };
+      })
+      .filter(token => {
+        const isSignificant = token.amount > 0;
+        console.log(`Token ${token.mint} amount ${token.amount} is significant: ${isSignificant}`);
+        return isSignificant;
+      });
+
+    console.log('Final tokens with non-zero balance:', significantTokens);
     return significantTokens;
   } catch (error) {
     console.error('Detailed error getting token balances:', {
