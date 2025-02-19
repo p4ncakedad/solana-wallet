@@ -17,6 +17,13 @@ interface TokenMetadata {
   address: string;
 }
 
+interface TokenBalance {
+  mint: string;
+  amount: number;
+  decimals: number;
+  metadata: TokenMetadata | null;
+}
+
 interface JupiterToken {
   address: string;
   name: string;
@@ -106,7 +113,7 @@ export const getSolBalance = async (address: string): Promise<number> => {
   }
 };
 
-export const getTokenBalances = async (address: string) => {
+export const getTokenBalances = async (address: string): Promise<TokenBalance[]> => {
   try {
     console.log('Getting token balances for address:', address);
     const publicKey = new PublicKey(address);
@@ -165,7 +172,9 @@ export const getTokenBalances = async (address: string) => {
         console.log(`Found metadata for token ${token.mint}:`, metadata);
       }
       return {
-        ...token,
+        mint: token.mint,
+        amount: token.amount,
+        decimals: token.decimals,
         metadata
       };
     });
