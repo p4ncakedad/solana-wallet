@@ -37,14 +37,17 @@ async function getJupiterTokenList(): Promise<JupiterToken[]> {
   }
 
   try {
-    const response = await fetch('https://token.jup.ag/strict');
+    // Using Jupiter's CDN endpoint instead
+    const response = await fetch('https://cache.jup.ag/tokens');
     if (!response.ok) {
       throw new Error('Failed to fetch Jupiter token list');
     }
 
-    const data = await response.json();
-    jupiterTokenListCache = data.tokens;
+    const tokens = await response.json();
+    jupiterTokenListCache = tokens;
     lastFetchTime = now;
+    
+    console.log('Fetched Jupiter tokens:', tokens.length);
     return jupiterTokenListCache || [];
   } catch (error) {
     console.error('Error fetching Jupiter token list:', error);
