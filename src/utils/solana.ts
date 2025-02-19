@@ -46,7 +46,7 @@ export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<st
     const allMetadata: Record<string, TokenMetadata> = {};
 
     for (const chunk of addressChunks) {
-      const apiUrl = `https://cors-proxy.fringe.zone/https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?address=${chunk.join(',')}`;
+      const apiUrl = `https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?aux=logo,symbol,name&skip_invalid=true&platform=solana&address=${chunk.join(',')}`;
       console.log('Calling CoinMarketCap API:', apiUrl);
 
       const response = await fetch(apiUrl, {
@@ -54,7 +54,8 @@ export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<st
         headers: {
           'X-CMC_PRO_API_KEY': CMC_API_KEY,
           'Accept': 'application/json'
-        }
+        },
+        mode: 'cors'
       });
 
       console.log('API Response status:', response.status);
@@ -109,31 +110,55 @@ export const getTokenBalances = async (address: string) => {
       programId: TOKEN_PROGRAM_ID,
     });
 
-    console.log('Raw token accounts:', tokens.value);
+    console.log('Number of token accounts found:', tokens.value.length);
+
+    // Map and log all tokens before filtering
+    const allTokens = tokens.value.map(token => {
+      const tokenAmount = token.account.data.parsed.info.tokenAmount;
+      const amount = Number(tokenAmount.uiAmountString);
+      console.log('Token found:', {
+        mint: token.account.data.parsed.info.mint,
+        amount,
+        decimals: tokenAmount.decimals
+      });
+      return {
+        mint: token.account.data.parsed.info.mint,
+        amount,
+        decimals: tokenAmount.decimals,
+      };
+    });
+
+    console.log('All tokens before filtering:', allTokens);
 
     // Filter tokens with significant balances
-    const significantTokens = tokens.value
-      .map(token => {
-        const tokenAmount = token.account.data.parsed.info.tokenAmount;
-        return {
-          mint: token.account.data.parsed.info.mint,
-          amount: Number(tokenAmount.uiAmountString),
-          decimals: tokenAmount.decimals,
-        };
+    const significantTokens = allTokens
+      .filter(token => {
+        const isSignificant = token.amount > 0.001;
+        console.log(`Token ${token.mint} amount ${token.amount} is significant: ${isSignificant}`);
+        return isSignificant;
       })
-      .filter(token => token.amount > 0.001);
+      .sort((a, b) => b.amount - a.amount);
 
-    console.log('Significant tokens:', significantTokens);
+    console.log('Significant tokens after filtering:', significantTokens);
+
+    if (significantTokens.length === 0) {
+      console.log('No significant token balances found');
+      return [];
+    }
 
     // Fetch metadata for all tokens
     const tokenMetadata = await fetchTokenMetadata(significantTokens.map(t => t.mint));
     console.log('Retrieved metadata:', tokenMetadata);
 
     // Combine balance data with metadata
-    const tokensWithMetadata = significantTokens.map(token => ({
-      ...token,
-      metadata: tokenMetadata[token.mint.toLowerCase()] || null
-    }));
+    const tokensWithMetadata = significantTokens.map(token => {
+      const metadata = tokenMetadata[token.mint.toLowerCase()] || null;
+      console.log(`Metadata for token ${token.mint}:`, metadata);
+      return {
+        ...token,
+        metadata
+      };
+    });
 
     console.log('Final tokens with metadata:', tokensWithMetadata);
     return tokensWithMetadata;
