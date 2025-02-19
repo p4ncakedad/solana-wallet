@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
-import Image from 'next/image';
 
 export default function Home() {
   const WALLET_ADDRESS = '75pGXf9UFNFct1vY6aGhbWVgLu55Y2WoJwjMvBvoD8ex';
@@ -72,38 +71,25 @@ export default function Home() {
                       key={token.mint}
                       className="p-4 bg-gray-700/50 rounded-lg border border-gray-600"
                     >
-                      <div className="flex items-center gap-3 mb-2">
-                        {token.metadata?.logo && (
-                          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-600 flex-shrink-0">
-                            <Image
-                              src={token.metadata.logo}
-                              alt={token.metadata?.symbol || 'Token'}
-                              width={32}
-                              height={32}
-                              className="object-cover"
-                            />
-                          </div>
-                        )}
+                      <div className="flex flex-col gap-2">
                         <div>
-                          <h3 className="font-semibold">
+                          <h3 className="text-lg font-semibold">
                             {token.metadata?.name || 'Unknown Token'}
-                            {token.metadata?.symbol && (
-                              <span className="ml-2 text-gray-400">
-                                ({token.metadata.symbol})
-                              </span>
-                            )}
+                            <span className="ml-2 text-gray-400">
+                              ({token.metadata?.symbol || 'Unknown'})
+                            </span>
                           </h3>
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-gray-400 font-mono">
                             {token.mint}
                           </p>
                         </div>
+                        <p className="text-xl font-bold text-blue-400">
+                          {token.amount.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 8
+                          })}
+                        </p>
                       </div>
-                      <p className="text-lg font-semibold text-blue-400">
-                        {token.amount.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 8
-                        })} tokens
-                      </p>
                     </div>
                   ))}
                 </div>

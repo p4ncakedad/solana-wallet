@@ -14,7 +14,6 @@ const connection = new Connection(rpcUrl, {
 interface TokenMetadata {
   name: string;
   symbol: string;
-  logo: string;
   address: string;
 }
 
@@ -22,7 +21,6 @@ interface JupiterToken {
   address: string;
   name: string;
   symbol: string;
-  logoURI?: string;
 }
 
 // Cache the Jupiter token list to avoid fetching it multiple times
@@ -71,9 +69,6 @@ export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<st
       ...addresses
     ]);
 
-    // Debug: Log the first few tokens from Jupiter
-    console.log('Sample Jupiter tokens:', tokenList.slice(0, 5));
-
     // Create a map of token addresses to their metadata
     tokenList.forEach(token => {
       // Try different case variations
@@ -81,20 +76,10 @@ export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<st
       const lowerAddress = tokenAddress.toLowerCase();
       const upperAddress = tokenAddress.toUpperCase();
 
-      console.log('Checking token:', {
-        tokenAddress,
-        lowerAddress,
-        upperAddress,
-        isInSet: addressSet.has(tokenAddress),
-        isInSetLower: addressSet.has(lowerAddress),
-        isInSetUpper: addressSet.has(upperAddress)
-      });
-
       if (addressSet.has(tokenAddress) || addressSet.has(lowerAddress) || addressSet.has(upperAddress)) {
         metadata[lowerAddress] = {
           name: token.name,
           symbol: token.symbol,
-          logo: token.logoURI || '',
           address: token.address
         };
         console.log('Found token metadata:', token.address, metadata[lowerAddress]);
@@ -102,7 +87,6 @@ export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<st
     });
 
     // Debug: Log addresses we're looking for vs what we found
-    console.log('Addresses we looked for:', addresses);
     console.log('Addresses we found metadata for:', Object.keys(metadata));
     
     return metadata;
