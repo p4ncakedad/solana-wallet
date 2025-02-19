@@ -13,56 +13,39 @@ export const connection = new Connection(rpcUrl, {
 
 export const getSolBalance = async (address: string): Promise<number> => {
   try {
-    console.log('Fetching balance for address:', address); // Debug log
     const publicKey = new PublicKey(address);
-    console.log('Public key created:', publicKey.toBase58()); // Debug log
-    
     const balance = await connection.getBalance(publicKey);
-    console.log('Raw balance received:', balance); // Debug log
-    const solBalance = balance / LAMPORTS_PER_SOL;
-    console.log('Converted SOL balance:', solBalance); // Debug log
-    
-    return solBalance;
+    return balance / LAMPORTS_PER_SOL;
   } catch (error) {
-    console.error('Detailed error getting SOL balance:', {
-      error,
-      address,
-      rpcUrl,
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
+    console.error('Error getting SOL balance:', error);
     throw error;
   }
 };
 
 export const getTokenBalances = async (address: string) => {
   try {
-    console.log('Fetching token balances for address:', address); // Debug log
     const publicKey = new PublicKey(address);
-    
     const tokens = await connection.getParsedTokenAccountsByOwner(publicKey, {
       programId: TOKEN_PROGRAM_ID,
     });
-    console.log('Raw token response:', JSON.stringify(tokens, null, 2));
-    console.log('Token accounts found:', tokens.value.length); // Debug log
 
-    // Log raw token data for debugging
-    tokens.value.forEach((token, index) => {
+    // First, log all tokens and their amounts
+    tokens.value.forEach((token) => {
       const info = token.account.data.parsed.info;
-      console.log(`Token ${index + 1} Details:`, {
+      console.log('Raw token data:', {
         mint: info.mint,
-        rawAmount: info.tokenAmount.uiAmount,
-        rawAmountString: info.tokenAmount.uiAmountString,
-        decimals: info.tokenAmount.decimals,
-        fullInfo: info
+        uiAmountString: info.tokenAmount.uiAmountString,
+        amount: info.tokenAmount.amount,
+        decimals: info.tokenAmount.decimals
       });
     });
 
-    // Only return tokens with actual balances
-    return tokens.value
+    // Process and filter tokens
+    const processedTokens = tokens.value
       .map((token) => {
         const info = token.account.data.parsed.info;
         const amount = parseFloat(info.tokenAmount.uiAmountString || '0');
+        console.log(`Processing ${info.mint}:`, { amount, isValid: !isNaN(amount) });
         return {
           mint: info.mint,
           amount,
@@ -70,20 +53,16 @@ export const getTokenBalances = async (address: string) => {
         };
       })
       .filter(token => {
-        // Ensure the amount is a valid number and greater than 0.001
-        return !isNaN(token.amount) && 
-               token.amount > 0.001 && 
-               token.amount !== 0;
+        const isValid = !isNaN(token.amount) && token.amount > 0.001;
+        console.log(`Filtering ${token.mint}:`, { amount: token.amount, isValid });
+        return isValid;
       })
-      .sort((a, b) => b.amount - a.amount); // Sort by balance, highest first
+      .sort((a, b) => b.amount - a.amount);
+
+    console.log('Final filtered tokens:', processedTokens);
+    return processedTokens;
   } catch (error) {
-    console.error('Detailed error getting token balances:', {
-      error,
-      address,
-      rpcUrl,
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
+    console.error('Error getting token balances:', error);
     throw error;
   }
 }; 
