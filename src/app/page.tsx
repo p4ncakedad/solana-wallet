@@ -61,32 +61,34 @@ export default function Home() {
         {balances && (
           <div className="space-y-6">
             <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                <h2 className="text-xl font-semibold">SOL Balance</h2>
-                <button
-                  onClick={handleRefresh}
-                  disabled={isLoading}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <RefreshIcon className="w-5 h-5" />
-                  {isLoading ? 'Refreshing...' : 'Refresh Balance'}
-                </button>
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold">SOL Balance</h2>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2 transition-all transform hover:scale-105"
+                  >
+                    <RefreshIcon className="w-6 h-6" />
+                    {isLoading ? 'UPDATING...' : 'UPDATE BALANCE'}
+                  </button>
+                </div>
+                <p className="text-3xl font-bold text-blue-400">
+                  {balances.solBalance.toFixed(4)} SOL
+                </p>
               </div>
-              <p className="text-3xl font-bold text-blue-400">
-                {balances.solBalance.toFixed(4)} SOL
-              </p>
             </div>
 
             <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
-              <h2 className="text-xl font-semibold mb-4">Token Balances (&gt; 0.001)</h2>
+              <h2 className="text-xl font-semibold mb-4">Active Token Balances</h2>
               {balances.tokenBalances.length === 0 ? (
-                <p className="text-gray-400">No tokens found with balance greater than 0.001</p>
+                <p className="text-gray-400">No active tokens found (minimum balance: 0.001)</p>
               ) : (
                 <div className="space-y-4">
                   {balances.tokenBalances.map((token) => (
                     <div
                       key={token.mint}
-                      className="p-4 bg-gray-700/50 rounded-lg"
+                      className="p-4 bg-gray-700/50 rounded-lg border border-gray-600"
                     >
                       <p className="text-sm text-gray-400 mb-1">
                         Token: {token.mint}
