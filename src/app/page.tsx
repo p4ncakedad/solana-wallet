@@ -1,29 +1,24 @@
 'use client';
 
-import type { FormEvent, ChangeEvent } from 'react';
+import { useEffect } from 'react';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 
 export default function Home() {
+  const WALLET_ADDRESS = '75pGXf9UFNFct1vY6aGhbWVgLu55Y2WoJwjMvBvoD8ex';
+  
   const {
-    address,
-    setAddress,
     isLoading,
     error,
     balances,
     fetchBalances,
   } = useWalletBalance();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (address.trim()) {
-      fetchBalances(address.trim());
-    }
-  };
+  useEffect(() => {
+    fetchBalances(WALLET_ADDRESS);
+  }, []);
 
   const handleRefresh = () => {
-    if (address.trim()) {
-      fetchBalances(address.trim());
-    }
+    fetchBalances(WALLET_ADDRESS);
   };
 
   return (
@@ -33,35 +28,19 @@ export default function Home() {
           Solana Wallet Balance Checker
         </h1>
         
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
-          <div className="w-full flex-1">
-            <input
-              type="text"
-              placeholder="Enter Solana wallet address"
-              value={address}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-500 focus:outline-none"
-            />
+        <div className="flex items-center justify-between gap-2 p-4 bg-gray-800 rounded-lg border border-gray-700 mb-8">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400">Wallet:</span>
+            <span className="font-mono">{WALLET_ADDRESS}</span>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => address.trim() && fetchBalances(address.trim())}
-              disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Loading...' : 'Check Balance'}
-            </button>
-            {balances && (
-              <button
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Refresh Balance"
-              >
-                <RefreshIcon className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Refresh Balance"
+          >
+            <RefreshIcon className="w-4 h-4" />
+          </button>
         </div>
 
         {error && (
