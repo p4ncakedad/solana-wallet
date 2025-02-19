@@ -11,10 +11,6 @@ const connection = new Connection(rpcUrl, {
   commitment: 'confirmed'
 });
 
-// CoinMarketCap API configuration
-const CMC_API_KEY = process.env.NEXT_PUBLIC_CMC_API_KEY;
-const CMC_API_URL = 'https://pro-api.coinmarketcap.com/v2';
-
 interface TokenMetadata {
   name: string;
   symbol: string;
@@ -22,70 +18,35 @@ interface TokenMetadata {
   address: string;
 }
 
-// Helper function to chunk array into smaller pieces
-const chunkArray = (array: string[], size: number): string[][] => {
-  const chunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-};
-
 export const fetchTokenMetadata = async (addresses: string[]): Promise<Record<string, TokenMetadata>> => {
   console.log('Fetching metadata for tokens:', addresses);
-  console.log('Using CMC API Key:', CMC_API_KEY ? 'Present' : 'Missing');
-
-  if (!CMC_API_KEY || addresses.length === 0) {
-    console.warn('CoinMarketCap API key not found or no addresses provided');
-    return {};
-  }
 
   try {
-    // Split addresses into chunks of 10 to avoid URL length limits
-    const addressChunks = chunkArray(addresses, 10);
-    const allMetadata: Record<string, TokenMetadata> = {};
-
-    for (const chunk of addressChunks) {
-      const apiUrl = `https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?aux=logo,symbol,name&skip_invalid=true&platform=solana&address=${chunk.join(',')}`;
-      console.log('Calling CoinMarketCap API:', apiUrl);
-
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'X-CMC_PRO_API_KEY': CMC_API_KEY,
-          'Accept': 'application/json'
-        },
-        mode: 'cors'
-      });
-
-      console.log('API Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error:', errorText);
-        continue; // Skip this chunk if there's an error, but continue with others
-      }
-
-      const data = await response.json();
-      console.log('API Response data:', JSON.stringify(data, null, 2));
-
-      // Process the response data
-      Object.values(data.data || {}).forEach((token: any) => {
-        if (token.platform?.token_address) {
-          const address = token.platform.token_address.toLowerCase();
-          allMetadata[address] = {
-            name: token.name,
-            symbol: token.symbol,
-            logo: token.logo,
-            address: token.platform.token_address
-          };
-          console.log('Processed token metadata:', address, allMetadata[address]);
-        }
-      });
+    // Fetch Jupiter token list
+    const response = await fetch('https://token.jup.ag/all');
+    if (!response.ok) {
+      throw new Error('Failed to fetch Jupiter token list');
     }
 
-    console.log('Final metadata object:', allMetadata);
-    return allMetadata;
+    const data = await response.json();
+    const metadata: Record<string, TokenMetadata> = {};
+
+    // Create a map of token addresses to their metadata
+    addresses.forEach(address => {
+      const token = data.find((t: any) => t.address === address);
+      if (token) {
+        metadata[address.toLowerCase()] = {
+          name: token.name,
+          symbol: token.symbol,
+          logo: token.logoURI || '',
+          address: token.address
+        };
+        console.log('Found token metadata:', address, metadata[address.toLowerCase()]);
+      }
+    });
+
+    console.log('Final metadata object:', metadata);
+    return metadata;
   } catch (error) {
     console.error('Error fetching token metadata:', error);
     return {};
