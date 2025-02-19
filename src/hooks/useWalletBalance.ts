@@ -4,7 +4,6 @@ import { getSolBalance, getTokenBalances } from '@/utils/solana';
 interface TokenMetadata {
   name: string;
   symbol: string;
-  logo: string;
   address: string;
 }
 
